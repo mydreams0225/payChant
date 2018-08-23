@@ -148,22 +148,26 @@
             <el-tab-pane label="附件" name="fourth">
                 <el-form label-position="right" label-width="160px" :model="enclosure">
                     <el-form-item label="营业执照：">
-                        <el-upload
+                        <el-upload :http-request="Upload" :multiple="true" 
+                            :show-file-list="false" action="">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                        </el-upload>
+                        <!-- <el-upload
                             class="avatar-uploader"
                             
-                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
+                            :action="UploadUrl()"
                             :show-file-list="false"
-                            :http-request="businessLinseSuccess"
+                            :on-success="businessLinseSuccess"
                             :before-upload="beforeAvatarUpload"
                             >
                             <img v-if="enclosure.businessLinseimgUrl" :src="enclosure.businessLinseimgUrl" class="avatar">
                             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-                        </el-upload>
+                        </el-upload> -->
                     </el-form-item>
                     <el-form-item label="开户许可证：">
                         <el-upload
                             class="avatar-uploader"
-                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
+                            action="https://jsonplaceholder.typicode.com/posts/"
                             :show-file-list="false"
                             :on-success="openPermitSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -173,8 +177,9 @@
                     </el-form-item>
                     <el-form-item label="身份证人面照：">
                         <el-upload
+                        
                             class="avatar-uploader"
-                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
+                            action="https://jsonplaceholder.typicode.com/posts/"
                             :show-file-list="false"
                             :on-success="identityCardzSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -184,6 +189,7 @@
                     </el-form-item>
                     <el-form-item label="身份证国徽照：">
                         <el-upload
+                           
                             class="avatar-uploader"
                             action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
                             :show-file-list="false"
@@ -205,12 +211,12 @@
     </div>
 </template>
 <script>
-import upload from '@/api/api'
+import upload from "@/api/api";
+import { client } from "@/utils/alioss";
 export default {
-    
   data() {
     return {
-      loading:false,
+      loading: false,
       area: configs.options,
       sellersTradeType: businessObj.sellersTradeType,
       certifyHolderType: [], // 证件持有人类型
@@ -247,9 +253,9 @@ export default {
       },
       enclosure: {
         businessLinseimgUrl: "",
-        openPermitimgUrl:"",// 开户许可证
-        identityCardzimgUrl:"",// 身份证人面照
-        identityCardfimgUrl:""
+        openPermitimgUrl: "", // 开户许可证
+        identityCardzimgUrl: "", // 身份证人面照
+        identityCardfimgUrl: ""
       }
     };
   },
@@ -257,11 +263,11 @@ export default {
     dialog: {
       title: "添加商户",
       dialogVisible: false,
-      loading:false,
+      loading: false,
       sellersName: "",
-      sellersTradeType:"",
-      sellersAPPID:"",
-      contacts:""
+      sellersTradeType: "",
+      sellersAPPID: "",
+      contacts: ""
     }
   },
   methods: {
@@ -272,14 +278,19 @@ export default {
       this.activeName = name;
     },
     submit() {
-      this.loading=true;
+      this.loading = true;
       this.sellersInfo.sellersName = this.dialog.sellersName; //修改需要改变 商户编号
-      this.sellersInfo.sellersTradeType=this.dialog.sellersTradeType ; // 商户行业类型
-      this.baseinfo.sellersAPPID=this.dialog.sellersAPPID; // 商户APPID
-      this.baseinfo.contacts=this.dialog.contacts;//联系人
-      
-      this.$emit("submit", {baseinfo:this.baseinfo, sellersInfo:this.sellersInfo,settleAccount:this.settleAccount,enclosure:this.enclosure});
-  this.loading=this.dialog.loading;
+      this.sellersInfo.sellersTradeType = this.dialog.sellersTradeType; // 商户行业类型
+      this.baseinfo.sellersAPPID = this.dialog.sellersAPPID; // 商户APPID
+      this.baseinfo.contacts = this.dialog.contacts; //联系人
+
+      this.$emit("submit", {
+        baseinfo: this.baseinfo,
+        sellersInfo: this.sellersInfo,
+        settleAccount: this.settleAccount,
+        enclosure: this.enclosure
+      });
+      this.loading = this.dialog.loading;
     },
     handleChange(value) {
       console.log(value || "");
@@ -289,32 +300,38 @@ export default {
     //   this.enclosure.businessLinseimgUrl = URL.createObjectURL(file.raw);
 
     //   console.log(this.enclosure.businessLinseimgUrl);
+    Upload(file) {
+      var fileName = "banner" + file.file.uid;
+      //定义唯一的文件名，打印出来的uid其实就是时间戳
+      //请求
+      uploadAli().then(response => {
+        //后台获得阿里服务器所需参数参数
+        client(response.data)
+          .put(fileName, file.file)
+          .then(result => {
+            // 大功搞成
+            //下面是如果对返回结果再进行处理，根据项目需要
+            this.fileList[0] = {
+              name: result.name,
+              url: result.url
+            };
+            //请求
+            uploadBannerPic(this.fileList).then(res => {
+              //根据需要可能项目还需对自己的数据库进行保存
+            });
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      });
+    },
 
-    businessLinseSuccess  (param) { //自定义文件上传
-    debugger
-    var fileObj = param.file;
-    // 接收上传文件的后台地址
-    var FileController = "https://adveross.oss-cn-shenzhen.aliyuncs.com/";
-    // FormData 对象
-    var form = new FormData();
-    // 文件对象
-    form.append("file", fileObj);
-    // 其他参数
-    // form.append("xxx", xxx);
-    // XMLHttpRequest 对象
-    var xhr = new XMLHttpRequest();
-    xhr.open("post", FileController, true);
-    xhr.upload.addEventListener("progress", vm.progressFunction, false); //监听上传进度
-    xhr.onload = function () {
-       vm.Form.playUrl = 'https://adveross.oss-cn-shenzhen.aliyuncs.com/'
-        // vm.Form.playUrl = xhr.response; //接收上传到阿里云的文件地址
-        vm.$message({
-            message: '恭喜你，上传成功!',
-            type: 'success'
-        });
-    };
-    xhr.send(form);
-},
+    businessLinseSuccess(res, file) {
+      //自定义文件上传
+      this.enclosure.businessLinseimgUrl = URL.createObjectURL(file.raw);
+      console.log("shangc");
+      console.log(this.enclosure.businessLinseimgUrl);
+    },
     // },
 
     openPermitSuccess(res, file) {
@@ -340,6 +357,10 @@ export default {
         this.$message.error("上传头像图片大小不能超过 2MB!");
       }
       return isJPG && isLt2M;
+    },
+    //后台接口 https://jsonplaceholder.typicode.com/posts/
+    UploadUrl() {
+      return "https://jsonplaceholder.typicode.com/posts/";
     }
   }
 };
