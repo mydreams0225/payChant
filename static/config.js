@@ -6,7 +6,10 @@
 
 
 */
+
+
 const business={
+    
     isOpenLock:[{value:1,label:"开启"},{value:2,label:"不开启"}],
     bussinessStatus:[{value:"1",label:"启用"},{value:"2",label:"不启用"}],
     useState:[{value:"1",label:"未使用"},{value:"2",label:"使用"}],
@@ -14927,3 +14930,6 @@ const configs = {
     homeOwner:[{ carOwner_name: "业主1" }, { carOwner_name: "业主2" }]
 
 }
+const businessObj={
+    sellersTradeType: [{ value: "1", label: "行业一" },{ value: "2", label: "行业二" }]
+};

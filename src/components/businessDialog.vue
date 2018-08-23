@@ -150,9 +150,10 @@
                     <el-form-item label="营业执照：">
                         <el-upload
                             class="avatar-uploader"
-                            action="https://jsonplaceholder.typicode.com/posts/"
+                            
+                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
                             :show-file-list="false"
-                            :on-success="businessLinseSuccess"
+                            :http-request="businessLinseSuccess"
                             :before-upload="beforeAvatarUpload"
                             >
                             <img v-if="enclosure.businessLinseimgUrl" :src="enclosure.businessLinseimgUrl" class="avatar">
@@ -162,7 +163,7 @@
                     <el-form-item label="开户许可证：">
                         <el-upload
                             class="avatar-uploader"
-                            action="https://jsonplaceholder.typicode.com/posts/"
+                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
                             :show-file-list="false"
                             :on-success="openPermitSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -173,7 +174,7 @@
                     <el-form-item label="身份证人面照：">
                         <el-upload
                             class="avatar-uploader"
-                            action="https://jsonplaceholder.typicode.com/posts/"
+                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
                             :show-file-list="false"
                             :on-success="identityCardzSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -184,7 +185,7 @@
                     <el-form-item label="身份证国徽照：">
                         <el-upload
                             class="avatar-uploader"
-                            action="https://jsonplaceholder.typicode.com/posts/"
+                            action="https://adveross.oss-cn-shenzhen.aliyuncs.com/"
                             :show-file-list="false"
                             :on-success="identityCardfSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -204,12 +205,14 @@
     </div>
 </template>
 <script>
+import upload from '@/api/api'
 export default {
+    
   data() {
     return {
       loading:false,
       area: configs.options,
-      sellersTradeType: [{ value: "1", label: "行业一" }],
+      sellersTradeType: businessObj.sellersTradeType,
       certifyHolderType: [], // 证件持有人类型
       certifyType: [], // 证件类型
       activeName: "first",
@@ -282,11 +285,38 @@ export default {
       console.log(value || "");
     },
     //图片上传
-    businessLinseSuccess(res, file) {
-      this.enclosure.businessLinseimgUrl = URL.createObjectURL(file.raw);
+    // businessLinseSuccess(res, file) {
+    //   this.enclosure.businessLinseimgUrl = URL.createObjectURL(file.raw);
 
-      console.log(this.enclosure.businessLinseimgUrl);
-    },
+    //   console.log(this.enclosure.businessLinseimgUrl);
+
+    businessLinseSuccess  (param) { //自定义文件上传
+    debugger
+    var fileObj = param.file;
+    // 接收上传文件的后台地址
+    var FileController = "https://adveross.oss-cn-shenzhen.aliyuncs.com/";
+    // FormData 对象
+    var form = new FormData();
+    // 文件对象
+    form.append("file", fileObj);
+    // 其他参数
+    // form.append("xxx", xxx);
+    // XMLHttpRequest 对象
+    var xhr = new XMLHttpRequest();
+    xhr.open("post", FileController, true);
+    xhr.upload.addEventListener("progress", vm.progressFunction, false); //监听上传进度
+    xhr.onload = function () {
+       vm.Form.playUrl = 'https://adveross.oss-cn-shenzhen.aliyuncs.com/'
+        // vm.Form.playUrl = xhr.response; //接收上传到阿里云的文件地址
+        vm.$message({
+            message: '恭喜你，上传成功!',
+            type: 'success'
+        });
+    };
+    xhr.send(form);
+},
+    // },
+
     openPermitSuccess(res, file) {
       this.enclosure.openPermitimgUrl = URL.createObjectURL(file.raw);
       console.log(this.enclosure.openPermitimgUrl);

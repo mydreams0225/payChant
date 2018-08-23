@@ -15,10 +15,11 @@
                                       :options="area"
                                       expand-trigger="hover"
                                       v-model="baseinfo.area"
+                                      
                                       @change="handleChange">
                                     </el-cascader>      
                     </el-form-item>
-                    
+                    <div class="allmaps" id="allmap"></div>
                     <el-form-item label="详细地址：">
                         <el-input v-model="baseinfo.storeDetailAddress"></el-input>
                     </el-form-item>
@@ -48,7 +49,9 @@
     </div>
 </template>
 <script>
+import BMap from 'BMap'
 export default {
+  
   data() {
     return {
       loading: false,
@@ -63,7 +66,8 @@ export default {
         email:"",
         abstracts: "",
         memo: ""
-      }
+      },
+      
     };
   },
   props: {
@@ -73,22 +77,39 @@ export default {
       loading: false,
       storeName: "1",
       area: "",
-      baseinfo: {}
     }
   },
   methods: {
+    ready: function() {
+      var map = new BMap.Map('allmap')
+      var point = new BMap.Point(108.840053, 34.129522)
+      map.centerAndZoom(point, 14)
+      map.addControl(new BMap.MapTypeControl())
+      map.enableScrollWheelZoom(true)
+      map.enableDoubleClickZoom(true)
+      var marker = new BMap.Marker(point)
+      map.addOverlay(marker)
+
+      map.centerAndZoom(point, 15)
+    },
     handleClick(tab, event) {
       console.log(tab, event);
     },
     firstclick(name) {
       this.activeName = name;
     },
+    mounted(){
+        this.ready();
+
+    },
     submit() {
       console.log("add");
-      console.log(this.baseinfo.area[2]);
+      // console.log(this.baseinfo.area[2]);
       this.loading = true;
-      this.baseinfo.storeName = this.dialog.storeName; //修改需要改变
-      this.baseinfo.area[2] = this.dialog.area; //地区
+      
+      this.baseinfo = this.dialog.storeData; //修改需要改变
+      
+      // this.baseinfo.area[2] = this.dialog.area; //地区
       this.$emit("submit", this.baseinfo);
       this.loading = this.dialog.loading;
     },
@@ -109,6 +130,10 @@ export default {
 }
 .dialogArea .btn {
   padding-left: 160px;
+}
+.allmaps{
+  width:100%;
+  height: 200px;
 }
 /* .dialogArea .el-select,.el-cascader{
       width:300px !important;

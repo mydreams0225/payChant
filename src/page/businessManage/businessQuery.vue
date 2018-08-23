@@ -17,6 +17,10 @@
                     border
                     style="width: 100%">
                     <el-table-column
+                      type="selection"
+                      width="55">
+                    </el-table-column>
+                    <el-table-column
                     prop="sellersId"
                     label="商户编号"
                     width="180">
@@ -79,7 +83,8 @@ import query from "@/components/query";
 import {
   reqBusiness, // 查询请求
   reqAddBusiness, // 添加请求
-  reqEditBusiness // 修改请求
+  reqEditBusiness, // 修改请求
+  reqDeleteBusiness // 单行删除
 } from "@/api/businessManage";
 import paging from "@/components/paging"; // 引入分页组件
 import businessDialog from "@/components/businessDialog"; // 引入添加修改弹出界面
@@ -108,7 +113,8 @@ export default {
           sellersName: "gg",
           sellersTradeType: "行业2",
           sellersAPPID: "appid",
-          contacts:"zlz"
+          contacts: "zlz",
+          status: "禁用"
         }
       ],
       dialog: {
@@ -141,11 +147,36 @@ export default {
       this.filters.codes = code;
       let para = {
         name: this.filters.names,
-        code: this.filters.codes
+        code: this.filters.codes,
+        currentPage: this.totals.currentPage,
+        pageSize: this.totals.pageSize
       };
       this.loading = false;
       reqBusiness(para).then(res => {
+        this.businessData = [];
         if (res.code === 1) {
+          let list = res.list;
+          list.forEach(item => {
+            var val = item.sellersTradType;
+            var sellersTradTypes = business.sellersTradType;
+            var sellersTradTypeName = "";
+            for (var item in data) {
+              if (val === data[item]["value"]) {
+                sellersTradTypeName = data[item]["name"];
+              }
+            }
+            let temp = {
+              sellersId: item.sellersId,
+              sellersName: item.sellersName,
+              sellersTradType: sellersTradTypeName,
+              sellersAPPID: item.sellersAPPID,
+              contacttMethod: item.contacttMethod,
+              contacts: item.contacts,
+              createTime: item.createTime,
+              status: item.status
+            };
+            this.businessData.push(temp);
+          });
         } else {
         }
       });
@@ -158,16 +189,32 @@ export default {
     },
     //单行删除
     deleteRow(index, rowId) {
-      console.log("rows");
-      console.log(rowId);
-      rows.splice(index, 1);
+      this.$confirm("确认删除该记录吗?", "提示", {
+        type: "warning"
+      }).then(() => {
+        let para = {
+          sellersId: rowId
+        };
+        reqDeleteBusiness(para).then(res => {
+          if (res.code === "1") {
+            this.$message({
+              message: "删除成功",
+              type: "success"
+            });
+          }
+          this.queryBusiness(this.filters.names, this.filters.codes);
+        });
+      }).catch(() => {});
+
+      // console.log("rows");
+      // console.log(rowId);
+      // rows.splice(index, 1);
     },
     //编辑信息查看
     handleClick(row) {
       this.dialog;
       this.dialog.dialogVisible = true;
       this.dialog.title = "修改商户列表";
-
       this.dialog.sellersName = row.sellersName;
       this.dialog.sellersTradeType = row.sellersTradeType;
       this.dialog.sellersAPPID = row.sellersAPPID;
@@ -214,12 +261,28 @@ export default {
       console.log(para);
       if (this.dialog.title === "添加商户列表") {
         //添加请求
-        reqAddBusiness(para).then(res => {});
+        reqAddBusiness(para).then(res => {
+          if (res.code === "1") {
+            this.$message({
+              message: "添加成功",
+              type: "success"
+            });
+          }
+        });
       } else {
         //修改请求
-        reqEditBusiness(para).then(res => {});
+        reqEditBusiness(para).then(res => {
+          if (res.code === "1") {
+            this.$message({
+              message: "添加成功",
+              type: "success"
+            });
+          }
+        });
       }
+      this.queryBusiness(this.filters.names, this.filters.codes);
       this.dialog.loading = false;
+      this.dialog.dialogVisible = false;
     }
   },
 

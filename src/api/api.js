@@ -114,6 +114,22 @@ export const reqUpdateStall = params => {
     headers:{"Content-Type": "application/x-www-form-urlencoded;charset=utf-8",}  // 这里是跨域的写法  
     }).then(res => res.data); }; 
 
+    // 文件上传
+    // const upload = axios.create({
+    //   baseURL: 'api',
+    //   //这里配置你自己的url
+    //   timeout: 5000,
+    //   headers: {
+    //     'Content-Type': 'multipart/form-data' //请求头
+    //   }
+    // })
+    export const upload = params => {   
+      return $axios.post(`https://adveross.oss-cn-shenzhen.aliyuncs.com/`,  
+       qs.stringify(params,{ indices: false }),  
+         {  // 这里是跨域写法  
+        headers:{"Content-Type": "application/x-www-form-urlencoded;charset=utf-8",}  // 这里是跨域的写法  
+        }).then(res => res.data); }; 
+
 
 
 

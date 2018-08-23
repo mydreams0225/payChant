@@ -28,7 +28,13 @@ export const reqEditBusiness = params => {
     headers:{"Content-Type": "application/x-www-form-urlencoded;charset=utf-8",}  // 这里是跨域的写法  
 }).then(res => res.data); }; 
 
-
+//4.删除商户信息 reqDeleteBusiness
+export const reqDeleteBusiness = params => {    
+  return $axios.post(`${base}/shopInfo/query/page`,  
+   qs.stringify(params,{ indices: false }),  
+     {  // 这里是跨域写法  
+    headers:{"Content-Type": "application/x-www-form-urlencoded;charset=utf-8",}  // 这里是跨域的写法  
+}).then(res => res.data); }; 
 
 
 

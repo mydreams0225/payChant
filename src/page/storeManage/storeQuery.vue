@@ -17,6 +17,10 @@
                     border
                     style="width: 100%">
                     <el-table-column
+                      type="selection"
+                      width="55">
+                    </el-table-column>
+                    <el-table-column
                     prop="storeId"
                     label="门店编号"
                     width="180">
@@ -112,16 +116,33 @@ export default {
         pageSize: 10,
         currentPage: 1
       },
-      storeData: [{url:"http://img.zcool.cn/community/019c2958a2b760a801219c77a9d27f.jpg"}],
+      storeData: [
+        {
+          url:
+            "http://img.zcool.cn/community/019c2958a2b760a801219c77a9d27f.jpg",
+          storeId: "1"
+        }
+      ],
       loading: false,
       dialog: {
-        title: "添加商户1",
+        title: "",
         dialogVisible: false,
-        loading: false
+        loading: false,
+        storeData: {
+          storeId: "",
+          storeName: "",
+          storeAddress: "",
+          storeDetailAddress: "",
+          contacts: "",
+          contactsPhone: "",
+          contactsEmail: "",
+          abstracts: "",
+          memo: ""
+        }
       },
-      receiptDialog:{
+      receiptDialog: {
         dialogVisible: false,
-        url:"",
+        url: ""
       }
     };
   },
@@ -129,14 +150,15 @@ export default {
     this.queryStore();
   },
   methods: {
+    //查询门店
     queryStore(name, code) {
       this.filters.names = name;
       this.filters.codes = code;
       let para = {
         name: this.filters.names || "",
         code: this.filters.codes || "",
-        currentPage:this.totals.currentPage,
-        pageSize:this.totals.pageSize,
+        currentPage: this.totals.currentPage,
+        pageSize: this.totals.pageSize
       };
       reqStore(para).then(res => {
         if (res.code === 1) {
@@ -171,7 +193,6 @@ export default {
     handleCurrentChanges(currentPage, pageSize) {
       this.totals.currentPage = currentPage;
       this.totals.pageSize = pageSize;
-
       this.queryStore(this.filters.names, this.filters.codes);
     },
     //编辑信息查看
@@ -179,22 +200,34 @@ export default {
       this.dialog;
       this.dialog.dialogVisible = true;
       this.dialog.title = "编辑门店信息";
+      this.dialog.storeData = row;
+      console.log("编辑");
+      console.log(this.dialog.storeData);
       //   this.dialog.sellersName = row.sellersName;
     },
     //单行删除
     deleteRow(index, rowId) {
-      let para = {
-        storeId: rowId //门店编号
-      };
-      reqRemoveStore(para).then(res => {
-        if (res.code === 1) {
-        }
-      });
+      this.$confirm("确认删除该记录吗?", "提示", {
+        type: "warning"
+      }).then(() => {
+        let para = {
+          storeId: rowId //门店编号
+        };
+        reqRemoveStore(para).then(res => {
+          if (res.code === 1) {
+            this.$message({
+              message: "删除成功",
+              type: "success"
+            });
+          }
+          this.queryStore(this.filters.names,this.filters.codes);
+        });
+      }).catch(() => {});
       //   console.log("rows");
       //   console.log(rowId);
       //   rows.splice(index, 1);
     },
-    
+    //添加或修改
     submits(obj) {
       //   storeName: "",
       // area: [],
@@ -207,7 +240,7 @@ export default {
       // memo: ""
       let para = {
         storeName: obj.storeName,
-        area: obj.area[2],
+        area: obj.area,
         storeDetailAddress: obj.storeDetailAddress,
         contacts: obj.contacts,
         mobilePhone: obj.mobilePhone,
@@ -220,18 +253,30 @@ export default {
         // reqAddBusiness(para).then(res => {
         reqAddStore(para).then(res => {
           console.log(res);
+          this.$message({
+              message: "添加成功",
+              type: "success"
+            });
         });
         // });
       } else {
         //修改请求
-        reqEditStore(para).then(res => {});
+        reqEditStore(para).then(res => {
+          if(res.code===1){
+            this.$message({
+              message: "修改成功",
+              type: "success"
+            });
+          }
+        });
       }
+      this.queryStore(this.filters.names,this.filters.codes);
     },
     //收款码
-    receiptCode(url){
-         this.receiptDialog.dialogVisible=true;
-         this.receiptDialog.url=url;
-    },
+    receiptCode(url) {
+      this.receiptDialog.dialogVisible = true;
+      this.receiptDialog.url = url;
+    }
   },
   components: {
     query, //查询
@@ -241,16 +286,15 @@ export default {
 };
 </script>
 <style>
-.imgBox{
+.imgBox {
   text-align: center;
 
-  width:100%;
+  width: 100%;
   height: 700px;
 }
-.imgBox img{
- height: 100%;
- width: 100%;
-
+.imgBox img {
+  height: 100%;
+  width: 100%;
 }
 </style>
 
